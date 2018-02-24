@@ -7,6 +7,7 @@ Meteor.methods({
 				method: 'openRoom'
 			});
 		}
+		console.log (rid);
 
 		return RocketChat.models.Subscriptions.openByRoomIdAndUserId(rid, Meteor.userId());
 	}

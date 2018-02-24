@@ -166,6 +166,11 @@ RocketChat.callbacks.add('afterSaveMessage', function(message, room, userId) {
 
 	const user = RocketChat.models.Users.findOneById(message.u._id);
 
+	// might be a livechat visitor
+	if (!user) {
+		return message;
+	}
+
 	/*
 	Increment unread couter if direct messages
 	 */
@@ -206,9 +211,9 @@ RocketChat.callbacks.add('afterSaveMessage', function(message, room, userId) {
 	subscriptions.forEach((s) => {
 		userIds.push(s.u._id);
 	});
-	const userSettings = {};
-	RocketChat.models.Users.findUsersByIds(userIds, { fields: { 'settings.preferences.audioNotifications': 1, 'settings.preferences.desktopNotifications': 1, 'settings.preferences.mobileNotifications': 1 } }).forEach((user) => {
-		userSettings[user._id] = user.settings;
+	const users = {};
+	RocketChat.models.Users.findUsersByIds(userIds, { fields: { 'settings.preferences': 1 } }).forEach((user) => {
+		users[user._id] = user;
 	});
 
 	subscriptions.forEach(subscription => {
@@ -218,16 +223,13 @@ RocketChat.callbacks.add('afterSaveMessage', function(message, room, userId) {
 			settings.dontNotifyAudioUsers.push(subscription.u._id);
 			return;
 		}
-		const preferences = userSettings[subscription.u._id] ? userSettings[subscription.u._id].preferences || {} : {};
-		const userAudioNotificationPreference = preferences.audioNotifications !== 'default' ? preferences.audioNotifications : undefined;
-		const userDesktopNotificationPreference = preferences.desktopNotifications !== 'default' ? preferences.desktopNotifications : undefined;
-		const userMobileNotificationPreference = preferences.mobileNotifications !== 'default' ? preferences.mobileNotifications : undefined;
-		// Set defaults if they don't exist
+
 		const {
-			audioNotifications = userAudioNotificationPreference || RocketChat.settings.get('Audio_Notifications_Default_Alert'),
-			desktopNotifications = userDesktopNotificationPreference || RocketChat.settings.get('Desktop_Notifications_Default_Alert'),
-			mobilePushNotifications = userMobileNotificationPreference || RocketChat.settings.get('Mobile_Notifications_Default_Alert')
+			audioNotifications = RocketChat.getUserPreference(users[subscription.u._id], 'audioNotifications'),
+			desktopNotifications = RocketChat.getUserPreference(users[subscription.u._id], 'desktopNotifications'),
+			mobilePushNotifications = RocketChat.getUserPreference(users[subscription.u._id], 'mobileNotifications')
 		} = subscription;
+
 		if (audioNotifications === 'all' && !disableAllMessageNotifications) {
 			settings.alwaysNotifyAudioUsers.push(subscription.u._id);
 		}
@@ -267,6 +269,8 @@ RocketChat.callbacks.add('afterSaveMessage', function(message, room, userId) {
 		push_room = `#${ room.name }`;
 	}
 
+	console.log (room._id);
+	console.log (message);
 	if (room.t == null || room.t === 'd') {
 		const userOfMentionId = message.rid.replace(message.u._id, '');
 		const userOfMention = RocketChat.models.Users.findOne({
@@ -274,7 +278,8 @@ RocketChat.callbacks.add('afterSaveMessage', function(message, room, userId) {
 		}, {
 			fields: {
 				username: 1,
-				statusConnection: 1
+				statusConnection: 1,
+				curRoom: 1,
 			}
 		});
 
@@ -288,8 +293,12 @@ RocketChat.callbacks.add('afterSaveMessage', function(message, room, userId) {
 				notifyDesktopUser(userOfMention._id, user, message, room, duration);
 			}
 
+
+			console.log (userOfMention);
 			if (canBeNotified(userOfMentionId, 'mobile')) {
-				if (Push.enabled === true && (userOfMention.statusConnection !== 'online' || alwaysNotifyMobileBoolean === true)) {
+				console.log ('sending mobile push 1');
+				if (Push.enabled === true && (userOfMention.statusConnection !== 'online' || userOfMention.curRoom !== room._id || alwaysNotifyMobileBoolean === true)) {
+					console.log ('sending mobile push 2');
 					RocketChat.PushNotification.send({
 						roomId: message.rid,
 						username: push_username,
@@ -353,7 +362,8 @@ RocketChat.callbacks.add('afterSaveMessage', function(message, room, userId) {
 			};
 
 			if (alwaysNotifyMobileBoolean !== true) {
-				usersOfMobileMentionsQuery.statusConnection = { $ne: 'online' };
+				//usersOfMobileMentionsQuery.statusConnection = { $ne: 'online' };
+				usersOfMobileMentionsQuery['$or'] = [{statusConnection: { $ne: 'online' }}, {curRoom: {$ne: room._id}}];
 			}
 
 			let usersOfMobileMentions = RocketChat.models.Users.find(usersOfMobileMentionsQuery, {
