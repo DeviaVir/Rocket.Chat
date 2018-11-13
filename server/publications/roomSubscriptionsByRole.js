@@ -2,8 +2,8 @@ Meteor.publish('roomSubscriptionsByRole', function(rid, role) {
 	if (!this.userId) {
 		return this.ready();
 	}
-	console.log ('roomSubscriptionsByRole');
-	console.log (rid);
+	// console.log ('roomSubscriptionsByRole');
+	// console.log (rid);
 
 	if (RocketChat.authz.hasPermission(this.userId, 'view-other-user-channels') !== true) {
 		return this.ready();

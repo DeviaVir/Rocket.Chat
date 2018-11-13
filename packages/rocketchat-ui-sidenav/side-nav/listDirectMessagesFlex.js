@@ -18,7 +18,7 @@ Template.listDirectMessagesFlex.helpers({
 	},
 	getrealname(username) {
 		user = Meteor.users.findOne({username:username});
-		console.log (user);
+		// console.log (user);
 		if (user)
 			return user.name;
 		else

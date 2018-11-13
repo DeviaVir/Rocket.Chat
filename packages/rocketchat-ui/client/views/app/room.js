@@ -416,7 +416,7 @@ Template.room.events({
 		}
 
 		const doLongTouch = () => {
-			console.log('long press');
+			// console.log('long press');
 			mountPopover(e, t, this);
 		};
 

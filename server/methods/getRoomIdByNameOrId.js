@@ -2,8 +2,8 @@ Meteor.methods({
 	getRoomIdByNameOrId(rid) {
 		check(rid, String);
 
-		console.log ('getRoomIdByNameOrId');
-		console.log (rid);
+		// console.log ('getRoomIdByNameOrId');
+		// console.log (rid);
 		if (!Meteor.userId()) {
 			throw new Meteor.Error('error-invalid-user', 'Invalid user', {
 				method: 'getRoomIdByNameOrId'

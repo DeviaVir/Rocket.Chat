@@ -269,8 +269,8 @@ RocketChat.callbacks.add('afterSaveMessage', function(message, room, userId) {
 		push_room = `#${ room.name }`;
 	}
 
-	console.log (room._id);
-	console.log (message);
+	// console.log (room._id);
+	// console.log (message);
 	if (room.t == null || room.t === 'd') {
 		const userOfMentionId = message.rid.replace(message.u._id, '');
 		const userOfMention = RocketChat.models.Users.findOne({
@@ -294,11 +294,11 @@ RocketChat.callbacks.add('afterSaveMessage', function(message, room, userId) {
 			}
 
 
-			console.log (userOfMention);
+			// console.log (userOfMention);
 			if (canBeNotified(userOfMentionId, 'mobile')) {
-				console.log ('sending mobile push 1');
+				// console.log ('sending mobile push 1');
 				if (Push.enabled === true && (userOfMention.statusConnection !== 'online' || userOfMention.curRoom !== room._id || alwaysNotifyMobileBoolean === true)) {
-					console.log ('sending mobile push 2');
+					// console.log ('sending mobile push 2');
 					RocketChat.PushNotification.send({
 						roomId: message.rid,
 						username: push_username,
