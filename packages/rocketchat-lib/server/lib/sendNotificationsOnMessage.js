@@ -225,9 +225,9 @@ RocketChat.callbacks.add('afterSaveMessage', function(message, room, userId) {
 		}
 
 		const {
-			audioNotifications = RocketChat.getUserPreference(users[subscription.u._id], 'audioNotifications'),
-			desktopNotifications = RocketChat.getUserPreference(users[subscription.u._id], 'desktopNotifications'),
-			mobilePushNotifications = RocketChat.getUserPreference(users[subscription.u._id], 'mobileNotifications')
+			audioNotifications = user.settings.preferences['audioNotifications'],
+			desktopNotifications = user.settings.preferences['desktopNotifications'],
+			mobilePushNotifications = user.settings.preferences['mobileNotifications']
 		} = subscription;
 
 		if (audioNotifications === 'all' && !disableAllMessageNotifications) {
