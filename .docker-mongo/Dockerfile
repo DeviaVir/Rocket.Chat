@@ -1,9 +1,7 @@
 FROM rocketchat/base:8
 
 ADD . /app
-WORKDIR /app
-RUN npm install
-RUN cp .docker-mongo/entrypoint.sh bundle/
+ADD entrypoint.sh /app/bundle/
 
 MAINTAINER buildmaster@rocket.chat
 
