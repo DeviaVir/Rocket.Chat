@@ -1,17 +1,17 @@
+import { Meteor } from 'meteor/meteor';
 import { RoomTypeConfig } from '../RoomTypeConfig';
 
 export class ConversationRoomType extends RoomTypeConfig {
 	constructor() {
 		super({
-			identifier: 'activity',
+			identifier: 'merged',
 			order: 30,
-			label: 'Conversations'
+			label: 'Conversations',
 		});
 	}
 
 	condition() {
-		const user = Meteor.user();
-		const preferences = (user && user.settings && user.settings.preferences && user.settings.preferences) || {};
-		return preferences.roomsListExhibitionMode === 'activity';
+		// returns true only if sidebarGroupByType is not set
+		return !RocketChat.getUserPreference(Meteor.userId(), 'sidebarGroupByType');
 	}
 }

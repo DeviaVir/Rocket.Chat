@@ -1,3 +1,4 @@
+import { Meteor } from 'meteor/meteor';
 import { RoomTypeConfig } from '../RoomTypeConfig';
 
 export class UnreadRoomType extends RoomTypeConfig {
@@ -5,15 +6,13 @@ export class UnreadRoomType extends RoomTypeConfig {
 		super({
 			identifier: 'unread',
 			order: 10,
-			label: 'Unread'
+			label: 'Unread',
 		});
 
 		this.unread = true;
 	}
 
 	condition() {
-		const user = Meteor.user();
-		const preferences = (user && user.settings && user.settings.preferences && user.settings.preferences) || {};
-		return preferences.roomsListExhibitionMode === 'unread';
+		return RocketChat.getUserPreference(Meteor.userId(), 'sidebarShowUnread');
 	}
 }

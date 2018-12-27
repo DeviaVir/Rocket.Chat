@@ -1,9 +1,12 @@
+import { ReactiveVar } from 'meteor/reactive-var';
+import { Template } from 'meteor/templating';
+
 Template.selectDropdown.events({
 	'focus input'(e, i) {
 		i.open.set(true);
 		// console.log('asdasd');
 	}, 'blur input'(e, i) {
-		setTimeout(()=>{
+		setTimeout(() => {
 			i.open.set(false);
 
 		}, 100);
@@ -13,7 +16,7 @@ Template.selectDropdown.events({
 Template.selectDropdown.helpers({
 	open() {
 		return Template.instance().open.get();
-	}
+	},
 });
 Template.selectDropdown.onCreated(function() {
 	this.open = new ReactiveVar(false);

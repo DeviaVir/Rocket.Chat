@@ -1,9 +1,16 @@
 import _ from 'underscore';
+import { ReactiveVar } from 'meteor/reactive-var';
 
 RocketChat.TabBar = new (class TabBar {
+	get size() {
+		return this._size.get();
+	}
+	set size(s) {
+		this._size.set(s);
+	}
 	constructor() {
 		this.buttons = new ReactiveVar({});
-
+		this._size = new ReactiveVar(4);
 		this.extraGroups = {};
 	}
 
@@ -45,7 +52,9 @@ RocketChat.TabBar = new (class TabBar {
 	}
 
 	getButtons() {
-		return _.sortBy(_.toArray(this.buttons.get()), 'order');
+		const buttons = _.toArray(this.buttons.get()).filter((button) => !button.condition || button.condition());
+
+		return _.sortBy(buttons, 'order');
 	}
 
 	getButton(id) {

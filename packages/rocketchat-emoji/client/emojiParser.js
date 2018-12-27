@@ -1,4 +1,6 @@
-/* globals isSetNotNull */
+import { Meteor } from 'meteor/meteor';
+import { RocketChat } from 'meteor/rocketchat:lib';
+import { isSetNotNull } from './function-isSet';
 import s from 'underscore.string';
 
 /*
@@ -6,12 +8,13 @@ import s from 'underscore.string';
  * @param {Object} message - The message object
  */
 RocketChat.callbacks.add('renderMessage', (message) => {
-	if (isSetNotNull(() => Meteor.user().settings.preferences.useEmojis) && !Meteor.user().settings.preferences.useEmojis) {
+	if (isSetNotNull(() => RocketChat.getUserPreference(Meteor.userId(), 'useEmojis')) &&
+		!RocketChat.getUserPreference(Meteor.userId(), 'useEmojis')) {
 		return message;
 	}
 
 	if (s.trim(message.html)) {
-		//&#39; to apostrophe (') for emojis such as :')
+		// &#39; to apostrophe (') for emojis such as :')
 		message.html = message.html.replace(/&#39;/g, '\'');
 
 		Object.keys(RocketChat.emoji.packages).forEach((emojiPackage) => {
@@ -42,7 +45,7 @@ RocketChat.callbacks.add('renderMessage', (message) => {
 			message.html = checkEmojiOnly.unwrap().html();
 		}
 
-		//apostrophe (') back to &#39;
+		// apostrophe (') back to &#39;
 		message.html = message.html.replace(/\'/g, '&#39;');
 	}
 
