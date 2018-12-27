@@ -22,6 +22,5 @@ Package.onUse(function(api) {
 		'rocketchat:ui-account',
 		'rocketchat:ui-vrecord',
 	]);
-	api.addAssets('../../node_modules/pdfjs-dist/build/pdf.worker.js', 'client');
 	api.mainModule('client/index.js', 'client');
 });

@@ -406,7 +406,7 @@ class ModelUsers extends RocketChat.models._Base {
 			}
 		};
 
-		console.log (update);
+		//console.log (update);
 		return this.update(_id, update);
 	}
 

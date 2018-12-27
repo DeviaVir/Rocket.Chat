@@ -60,7 +60,7 @@ Template.livechatWindow.helpers({
 	},
 	showWidget() {
 		return Livechat.online || Livechat.displayOfflineForm;
-	}
+	},
   usersTyping() {
     room_typing = MsgTyping.get(visitor.getRoom());
     users = _.keys(room_typing.users);

@@ -1,21 +1,32 @@
+FROM node:8 AS node
+
+COPY . /app
+WORKDIR /app
+
+ENV METEOR_ALLOW_SUPERUSER=1
+
+RUN curl https://install.meteor.com/ | sh
+RUN meteor npm install \
+ && set +e \
+ && meteor add rocketchat:lib \
+ && set -e \
+ && meteor build --server-only .
+
 FROM rocketchat/base:8
 
-ADD . /app
-
-MAINTAINER buildmaster@rocket.chat
-
+RUN mkdir -p /app
+COPY --from=node /app/app.tar.gz /app/app.tar.gz
 RUN set -x \
+ && cd /app \
+ && tar xzvf app.tar.gz \
+ && rm -rf app.tar.gz \
  && cd /app/bundle/programs/server \
  && npm install \
  && npm cache clear --force \
  && chown -R rocketchat:rocketchat /app
-
 USER rocketchat
-
 VOLUME /app/uploads
-
 WORKDIR /app/bundle
-
 # needs a mongoinstance - defaults to container linking with alias 'mongo'
 ENV DEPLOY_METHOD=docker \
     NODE_ENV=production \
@@ -24,7 +35,6 @@ ENV DEPLOY_METHOD=docker \
     PORT=3000 \
     ROOT_URL=http://localhost:3000 \
     Accounts_AvatarStorePath=/app/uploads
-
 EXPOSE 3000
 
 CMD ["node", "main.js"]

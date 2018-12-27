@@ -207,10 +207,11 @@ function sendAllNotifications(message, room) {
 
 	// Don't fetch all users if room exceeds max members
 	const maxMembersForNotification = RocketChat.settings.get('Notifications_Max_Room_Members');
-	const disableAllMessageNotifications = room.usernames.length > maxMembersForNotification && maxMembersForNotification !== 0;
-	const subscriptions = RocketChat.models.Subscriptions.findNotificationPreferencesByRoom(room._id, disableAllMessageNotifications);
+	const roomMembersCount = RocketChat.models.Subscriptions.findByRoomId(room._id).count();
+	const disableAllMessageNotifications = roomMembersCount > maxMembersForNotification && maxMembersForNotification !== 0;
+	const subscriptionsPush = RocketChat.models.Subscriptions.findNotificationPreferencesByRoom(room._id, disableAllMessageNotifications);
 	const userIds = [];
-	subscriptions.forEach((s) => {
+	subscriptionsPush.forEach((s) => {
 		userIds.push(s.u._id);
 	});
 	const users = {};
@@ -218,7 +219,7 @@ function sendAllNotifications(message, room) {
 		users[user._id] = user;
 	});
 
-	subscriptions.forEach(subscription => {
+	subscriptionsPush.forEach(subscription => {
 		if (subscription.disableNotifications) {
 			settings.dontNotifyDesktopUsers.push(subscription.u._id);
 			settings.dontNotifyMobileUsers.push(subscription.u._id);
@@ -351,14 +352,9 @@ function sendAllNotifications(message, room) {
 			userIdsToPushNotify = usersOfMobileMentions.map(userMobile => {
 				pushUsernames[userMobile._id] = userMobile.username;
 				return userMobile._id;
-			}
+			})
 		}
 	}
-
-	// Don't fetch all users if room exceeds max members
-	const maxMembersForNotification = RocketChat.settings.get('Notifications_Max_Room_Members');
-	const roomMembersCount = RocketChat.models.Subscriptions.findByRoomId(room._id).count();
-	const disableAllMessageNotifications = roomMembersCount > maxMembersForNotification && maxMembersForNotification !== 0;
 
 	const query = {
 		rid: room._id,
