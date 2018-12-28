@@ -1,6 +1,39 @@
 import { Meteor } from 'meteor/meteor';
 import moment from 'moment';
 
+const CATEGORY_MESSAGE = 'MESSAGE';
+const CATEGORY_MESSAGE_NOREPLY = 'MESSAGE_NOREPLY';
+
+
+function canSendMessageToRoom(room, username) {
+	return !((room.muted || []).includes(username));
+}
+
+/**
+ * This function returns a string ready to be shown in the notification
+ *
+ * @param {object} message the message to be parsed
+ */
+function parseMessageText(message, userId) {
+	const user = RocketChat.models.Users.findOneById(userId);
+	const lng = user && user.language || RocketChat.settings.get('language') || 'en';
+
+	if (!message.msg && message.attachments && message.attachments[0]) {
+		message.msg = message.attachments[0].image_type ? TAPi18n.__('User_uploaded_image', {lng}) : TAPi18n.__('User_uploaded_file', {lng});
+	}
+	message.msg = RocketChat.callbacks.run('beforeNotifyUser', message.msg);
+
+	return message.msg;
+}
+
+function getBadgeCount(userId) {
+	const subscriptions = RocketChat.models.Subscriptions.findUnreadByUserId(userId).fetch();
+
+	return subscriptions.reduce((unread, sub) => {
+		return sub.unread + unread;
+	}, 0);
+}
+
 import { callJoinRoom, messageContainsHighlight, parseMessageTextPerUser, replaceMentionedUsernamesWithFullNames } from '../functions/notifications/';
 import { sendEmail, shouldNotifyEmail } from '../functions/notifications/email';
 import { sendSinglePush, shouldNotifyMobile } from '../functions/notifications/mobile';
@@ -256,13 +289,17 @@ function sendAllNotifications(message, room) {
 	const mentions = [];
 	const alwaysNotifyMobileBoolean = RocketChat.settings.get('Notifications_Always_Notify_Mobile');
 
-	const usersWithHighlights = RocketChat.models.Users.findUsersByUsernamesWithHighlights(room.usernames, { fields: { '_id': 1, 'settings.preferences.highlights': 1 }}).fetch()
-		.filter(user => messageContainsHighlight(message, user.settings.preferences.highlights));
-
 	let push_message = ' ';
 	//Set variables depending on Push Notification settings
 	if (RocketChat.settings.get('Push_show_message')) {
 		push_message = parseMessageText(message, userId);
+	}
+
+	let push_username = '';
+	let push_room = '';
+	if (RocketChat.settings.get('Push_show_username_room')) {
+		push_username = user.username;
+		push_room = `#${ room.name }`;
 	}
 
 	const sender = RocketChat.roomTypes.getConfig(room.t).getMsgSender(message.u._id);
