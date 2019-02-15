@@ -3,6 +3,7 @@ import { Meteor } from 'meteor/meteor';
 import { Importers } from 'meteor/rocketchat:importer';
 import { ProgressStep } from '../../lib/ImporterProgressStep';
 import path from 'path';
+import fs from 'fs';
 
 Meteor.methods({
 	getImportFileData(importerKey) {
@@ -34,7 +35,11 @@ Meteor.methods({
 		];
 
 		if (waitingSteps.indexOf(importer.instance.progress.step) >= 0) {
-			return { waiting: true };
+			if (importer.instance.importRecord && importer.instance.importRecord.valid) {
+				return { waiting: true };
+			} else {
+				throw new Meteor.Error('error-import-operation-invalid', 'Invalid Import Operation', { method: 'getImportFileData' });
+			}
 		}
 
 		const readySteps = [
@@ -51,7 +56,7 @@ Meteor.methods({
 		}
 
 		const fileName = importer.instance.importRecord.file;
-		const fullFilePath = path.join(RocketChatImportFileInstance.absolutePath, fileName);
+		const fullFilePath = fs.existsSync(fileName) ? fileName : path.join(RocketChatImportFileInstance.absolutePath, fileName);
 		const results = importer.instance.prepareUsingLocalFile(fullFilePath);
 
 		if (results instanceof Promise) {
@@ -62,6 +67,7 @@ Meteor.methods({
 
 				return data;
 			}).catch((e) => {
+				console.error(e);
 				throw new Meteor.Error(e);
 			});
 
