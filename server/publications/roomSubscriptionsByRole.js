@@ -1,4 +1,6 @@
 import { Meteor } from 'meteor/meteor';
+import { hasPermission } from 'meteor/rocketchat:authorization';
+import { Subscriptions } from 'meteor/rocketchat:models';
 
 Meteor.publish('roomSubscriptionsByRole', function(rid, role) {
 	if (!this.userId) {
@@ -7,11 +9,11 @@ Meteor.publish('roomSubscriptionsByRole', function(rid, role) {
 	// console.log ('roomSubscriptionsByRole');
 	// console.log (rid);
 
-	if (RocketChat.authz.hasPermission(this.userId, 'view-other-user-channels') !== true) {
+	if (hasPermission(this.userId, 'view-other-user-channels') !== true) {
 		return this.ready();
 	}
 
-	return RocketChat.models.Subscriptions.findByRoomIdAndRoles(rid, role, {
+	return Subscriptions.findByRoomIdAndRoles(rid, role, {
 		fields: {
 			rid: 1,
 			name: 1,
