@@ -7,10 +7,7 @@ ENV METEOR_ALLOW_SUPERUSER=1
 
 RUN curl https://install.meteor.com/ | sh
 RUN meteor npm install \
- && set +e \
- && meteor add rocketchat:lib \
- && set -e \
- && meteor build --server-only .
+ && meteor build  --headless .
 
 FROM rocketchat/base:8
 
