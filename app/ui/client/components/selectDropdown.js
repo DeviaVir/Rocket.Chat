@@ -4,11 +4,11 @@ import { Template } from 'meteor/templating';
 Template.selectDropdown.events({
 	'focus input'(e, i) {
 		i.open.set(true);
-		// console.log('asdasd');
-	}, 'blur input'(e, i) {
+		console.log('asdasd');
+	},
+	'blur input'(e, i) {
 		setTimeout(() => {
 			i.open.set(false);
-
 		}, 100);
 		// console.log('asdasd');
 	}
